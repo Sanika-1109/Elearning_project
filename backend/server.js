@@ -22,7 +22,7 @@ app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/auth',          require('./routes/auth'));
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 app.get('/', (req, res) => {
   res.json({ message: 'E-Learning API is running!' });
