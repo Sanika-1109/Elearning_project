@@ -9,10 +9,9 @@ router.post('/login/:role', async (req, res) => {
     const role = req.params.role;
     const pool = await getPool();
 
-    let table = role === 'instructor' ? 'Instructor' : 'Student';
-    let idField = role === 'instructor' ? 'instructor_id' : 'student_id';
-
-    const [rows] = await pool.query(`SELECT * FROM ${table} WHERE email = ? AND password = ?`, [email, password]);
+    let table = role === 'instructor' ? 'instructor' : 'student';
+    // Using password_hash as per university schema
+    const [rows] = await pool.query(`SELECT * FROM ${table} WHERE email = ? AND password_hash = ?`, [email, password]);
 
     if (rows.length > 0) {
       const user = rows[0];
@@ -31,13 +30,13 @@ router.post('/register/student', async (req, res) => {
     const { name, email, password } = req.body;
     const pool = await getPool();
 
-    const [existing] = await pool.query('SELECT * FROM Student WHERE email = ?', [email]);
+    const [existing] = await pool.query('SELECT * FROM student WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(400).json({ success: false, message: 'Email already registered' });
     }
 
     await pool.query(
-      'INSERT INTO Student (name, email, password, registered_date) VALUES (?, ?, ?, NOW())',
+      'INSERT INTO student (name, email, password_hash, registered_date) VALUES (?, ?, ?, NOW())',
       [name, email, password]
     );
 

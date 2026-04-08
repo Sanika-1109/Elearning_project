@@ -6,12 +6,12 @@ const { getPool } = require('../db');
 router.get('/:id', async (req, res) => {
   try {
     const pool = await getPool();
-    const [rows] = await pool.query('SELECT * FROM Lesson WHERE lesson_id = ?', [req.params.id]);
+    const [rows] = await pool.query('SELECT * FROM lesson WHERE lesson_id = ?', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Lesson not found' });
     
     // Get next lesson ID
     const [nextRows] = await pool.query(
-      'SELECT lesson_id FROM Lesson WHERE course_id = ? AND order_index > ? ORDER BY order_index LIMIT 1',
+      'SELECT lesson_id FROM lesson WHERE course_id = ? AND order_index > ? ORDER BY order_index LIMIT 1',
       [rows[0].course_id, rows[0].order_index]
     );
 
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
     const pool = await getPool();
 
     await pool.query(
-      'INSERT INTO Lesson (course_id, title, video_url, content_url, order_index) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO lesson (course_id, title, video_url, content_url, order_index) VALUES (?, ?, ?, ?, ?)',
       [course_id, title, video_url, content_url, order_index]
     );
 
