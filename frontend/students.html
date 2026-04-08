@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="elearningApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPath — Enrollment Data</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream:#F5F0E8; --dark:#1A1A2E; --accent:#C8963E; --accent-light:#E8B96A; --text:#2D2D2D; --muted:#7A7A7A; --white:#FFFFFF; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+    nav { background: var(--dark); padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; height: 64px; border-bottom: 1px solid rgba(200,150,62,0.2); }
+    .nav-logo { font-family: 'Playfair Display', serif; color: var(--white); font-size: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .nav-logo span { background: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 14px; }
+    .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; margin-left: 1.5rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .logout-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+
+    .hero { background: var(--dark); padding: 3rem; color: var(--white); border-bottom: 3px solid var(--accent); }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 8px; }
+    .hero span { color: var(--accent-light); }
+    .hero p { color: rgba(255,255,255,0.5); font-size: 15px; font-weight: 300; }
+
+    .main { padding: 2.5rem 3rem; max-width: 1200px; margin: 0 auto; }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .search-box { flex: 1; max-width: 400px; position: relative; }
+    .search-box input { width: 100%; padding: 12px 14px 12px 40px; border-radius: 8px; border: 1.5px solid #DDD8CE; background: var(--white); font-family: inherit; font-size: 14px; outline: none; }
+    .search-box::before { content: '🔍'; position: absolute; left: 14px; top: 12px; color: var(--muted); }
+
+    .stats-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--white); border-radius: 12px; padding: 1.5rem; border: 1px solid #EDE8DE; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stat-card .value { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent); }
+
+    .student-table-container { background: var(--white); border-radius: 16px; border: 1px solid #EDE8DE; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #F8F6F1; padding: 16px; text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 2px solid #EDE8DE; }
+    tbody td { padding: 16px; font-size: 14px; border-bottom: 1px solid #F0EDE6; }
+    tbody tr:hover { background: #FBFAF8; }
+    .id-badge { background: #EEE; color: #555; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+    .email-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .enroll-count { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(39,174,96,0.1); color: #27AE60; }
+
+    .loading { text-align: center; padding: 4rem; color: var(--muted); }
+    .spinner { width: 36px; height: 36px; border: 3px solid #DDD8CE; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body ng-controller="StudentsCtrl">
+
+  <nav>
+    <a class="nav-logo" href="courses.html"><span>🎓</span> EduPath</a>
+    <div class="nav-links">
+      <a href="courses.html">Explore Courses</a>
+      <a href="instructor.html">Management</a>
+      <a href="students.html" style="color:var(--white)">Student Data</a>
+    </div>
+    <button class="logout-btn" ng-click="logout()">Sign Out</button>
+  </nav>
+
+  <div class="hero">
+    <div class="main" style="padding:0">
+      <h1>Student <span>Enrollment</span> Analytics</h1>
+      <p>A comprehensive view of your platform's learning community and engagement levels.</p>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats Row -->
+    <div class="stats-summary" ng-if="!loading">
+      <div class="stat-card">
+        <div class="label">Total Students</div>
+        <div class="value">{{students.length}}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Enrollments</div>
+        <div class="value">{{totalEnrollments()}}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg. Engagement</div>
+        <div class="value">{{(totalEnrollments()/students.length).toFixed(1)}}</div>
+      </div>
+    </div>
+
+    <!-- Search Tool -->
+    <div class="controls" ng-if="!loading">
+      <div class="search-box">
+        <input type="text" ng-model="searchQuery" placeholder="Search by name or email..." />
+      </div>
+      <div style="font-size:13px;color:var(--muted)">Showing {{filtered().length}} records</div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" ng-if="loading">
+      <div class="spinner"></div>
+      <p>Syncing with database...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="student-table-container" ng-if="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Registered On</th>
+            <th>Courses</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="s in filtered()">
+            <td><span class="id-badge">STD-0{{s.student_id}}</span></td>
+            <td style="font-weight:600">{{s.name}}</td>
+            <td><a class="email-link" href="mailto:{{s.email}}">{{s.email}}</a></td>
+            <td>{{s.registered_date | date:'MMM dd, yyyy'}}</td>
+            <td><span class="enroll-count">{{s.course_count}} courses</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div ng-if="filtered().length === 0" class="loading" style="padding:2rem">
+        No students found matching your search.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    angular.module('elearningApp', [])
+      .controller('StudentsCtrl', ['$scope', '$http', function($scope, $http) {
+        const API = '/api';
+        $scope.students = [];
+        $scope.loading = true;
+        $scope.searchQuery = '';
+
+        $http.get(API + '/students').then(function(res) {
+          $scope.students = res.data.students || [];
+          $scope.loading = false;
+        }).catch(function() {
+          $scope.loading = false;
+          alert('Database connection error. Please ensure the server is running.');
+        });
+
+        $scope.totalEnrollments = function() {
+          return $scope.students.reduce((sum, s) => sum + s.course_count, 0);
+        };
+
+        $scope.filtered = function() {
+          if (!$scope.searchQuery) return $scope.students;
+          return $scope.students.filter(s => 
+            s.name.toLowerCase().includes($scope.searchQuery.toLowerCase()) ||
+            s.email.toLowerCase().includes($scope.searchQuery.toLowerCase())
+          );
+        };
+
+        $scope.logout = function() {
+          sessionStorage.clear();
+          window.location.href = 'login.html';
+        };
+      }]);
+  </script>
+</body>
+</html>

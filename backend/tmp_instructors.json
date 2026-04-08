@@ -1,0 +1,10 @@
+[
+  {
+    "email": "sharma@elearn.com",
+    "password_hash": "hashed123"
+  },
+  {
+    "email": "patel@elearn.com",
+    "password_hash": "hashed456"
+  }
+]

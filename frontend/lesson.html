@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="elearningApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPath — Lesson</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream:#F5F0E8; --dark:#1A1A2E; --accent:#C8963E; --accent-light:#E8B96A; --text:#2D2D2D; --muted:#7A7A7A; --white:#FFFFFF; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+    nav { background: var(--dark); padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { font-family: 'Playfair Display', serif; color: var(--white); font-size: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .nav-logo span { background: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 14px; }
+    .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; margin-left: 1.5rem; }
+    .logout-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+    .lesson-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; padding: 2rem 3rem; max-width: 1200px; margin: 0 auto; }
+
+    .video-box {
+      background: var(--dark);
+      border-radius: 12px;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .video-box iframe { width: 100%; height: 100%; border: none; border-radius: 12px; }
+    .video-placeholder { text-align: center; color: rgba(255,255,255,0.4); }
+    .video-placeholder .play-icon { font-size: 4rem; margin-bottom: 1rem; }
+    .video-placeholder p { font-size: 14px; }
+
+    .lesson-header { margin-bottom: 1.5rem; }
+    .lesson-header .breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .lesson-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .lesson-header h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+
+    .lesson-card { background: var(--white); border-radius: 12px; padding: 1.5rem; border: 1px solid #EDE8DE; margin-bottom: 1rem; }
+    .lesson-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 1rem; }
+
+    .complete-btn { width: 100%; padding: 13px; background: var(--dark); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .complete-btn:hover { background: #2D2D4E; }
+    .complete-btn.done { background: rgba(39,174,96,0.1); color: #27AE60; border: 1px solid rgba(39,174,96,0.3); cursor: default; }
+
+    .quiz-card { background: var(--white); border-radius: 12px; padding: 1.5rem; border: 1px solid #EDE8DE; }
+    .quiz-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 1rem; }
+    .question { font-size: 15px; font-weight: 500; margin-bottom: 1rem; line-height: 1.5; }
+    .option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border: 1.5px solid #DDD8CE;
+      border-radius: 8px; margin-bottom: 8px; cursor: pointer;
+      transition: all 0.2s; font-size: 14px;
+    }
+    .option:hover { border-color: var(--accent); background: rgba(200,150,62,0.05); }
+    .option.selected { border-color: var(--accent); background: rgba(200,150,62,0.08); }
+    .option.correct { border-color: #27AE60; background: rgba(39,174,96,0.08); color: #27AE60; }
+    .option.wrong   { border-color: #C0392B; background: rgba(192,57,43,0.08); color: #C0392B; }
+    .option-letter { width: 26px; height: 26px; border-radius: 50%; background: #EDE8DE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+
+    .submit-quiz-btn { width: 100%; padding: 11px; background: var(--accent); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 0.5rem; transition: all 0.2s; }
+    .submit-quiz-btn:hover { background: var(--accent-light); }
+    .submit-quiz-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .quiz-result { text-align: center; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-weight: 500; }
+    .quiz-result.pass { background: rgba(39,174,96,0.1); color: #27AE60; border: 1px solid rgba(39,174,96,0.3); }
+    .quiz-result.fail { background: rgba(192,57,43,0.08); color: #C0392B; border: 1px solid rgba(192,57,43,0.2); }
+
+    .nav-btns { display: flex; gap: 1rem; margin-top: 1rem; }
+    .nav-btn { flex: 1; padding: 10px; border: 1.5px solid #DDD8CE; background: transparent; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; color: var(--text); transition: all 0.2s; }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn.primary { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    .nav-btn.primary:hover { background: #2D2D4E; }
+
+    .loading { text-align: center; padding: 4rem; color: var(--muted); }
+    .spinner { width: 36px; height: 36px; border: 3px solid #DDD8CE; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .no-quiz { text-align: center; padding: 2rem; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body ng-controller="LessonCtrl">
+  <nav>
+    <a class="nav-logo" href="courses.html"><span>🎓</span> EduPath</a>
+    <div class="nav-links">
+      <a href="courses.html">Courses</a>
+      <a href="dashboard.html">Dashboard</a>
+    </div>
+    <button class="logout-btn" ng-click="logout()">Logout</button>
+  </nav>
+
+  <div class="loading" ng-if="loading"><div class="spinner"></div><p>Loading lesson...</p></div>
+
+  <div class="lesson-layout" ng-if="!loading">
+    <!-- Left: Video + lesson info -->
+    <div>
+      <div class="lesson-header">
+        <div class="breadcrumb"><a ng-href="coursedetail.html?id={{courseId}}">← Back to Course</a></div>
+        <h1>{{lesson.title}}</h1>
+      </div>
+
+      <div class="video-box">
+        <iframe ng-if="lesson.video_url" ng-src="{{lesson.video_url}}" allowfullscreen></iframe>
+        <div class="video-placeholder" ng-if="!lesson.video_url">
+          <div class="play-icon">🎬</div>
+          <p>No video available for this lesson</p>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <h3>Lesson Content</h3>
+        <p ng-if="lesson.content_url" style="font-size:14px;color:var(--muted)">
+          📄 <a ng-href="{{lesson.content_url}}" target="_blank" style="color:var(--accent)">View lesson materials</a>
+        </p>
+        <p ng-if="!lesson.content_url" style="font-size:14px;color:var(--muted)">Watch the video above to complete this lesson.</p>
+      </div>
+
+      <button class="complete-btn" ng-class="{done: isCompleted}" ng-click="markComplete()" ng-disabled="isCompleted">
+        {{isCompleted ? '✓ Lesson Completed' : 'Mark as Complete'}}
+      </button>
+
+      <div class="nav-btns" style="margin-top:1rem">
+        <button class="nav-btn" ng-click="goBack()">← Back to Course</button>
+      </div>
+    </div>
+
+    <!-- Right: Quiz -->
+    <div>
+      <div class="quiz-card" ng-if="quiz">
+        <h3>📝 Lesson Quiz</h3>
+        <div class="question">{{quiz.question}}</div>
+        <div class="option" ng-repeat="opt in options"
+          ng-class="getOptionClass(opt.key)"
+          ng-click="selectOption(opt.key)">
+          <div class="option-letter">{{opt.key.toUpperCase()}}</div>
+          {{opt.value}}
+        </div>
+        <button class="submit-quiz-btn" ng-click="submitQuiz()" ng-disabled="!selectedOption || quizSubmitted">
+          {{quizSubmitted ? 'Submitted!' : 'Submit Answer'}}
+        </button>
+        <div class="quiz-result pass" ng-if="quizResult && quizResult.correct">
+          🎉 Correct! You scored {{quizResult.score}}/100
+        </div>
+        <div class="quiz-result fail" ng-if="quizResult && !quizResult.correct">
+          ✗ Incorrect. Correct answer: {{quizResult.correct_option.toUpperCase()}}
+        </div>
+      </div>
+      <div class="no-quiz" ng-if="!quiz && !loading">
+        <p style="font-size:2rem">📚</p>
+        <p style="margin-top:8px">No quiz for this lesson</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    angular.module('elearningApp', [])
+      .controller('LessonCtrl', ['$scope', '$http', '$sce', function($scope, $http, $sce) {
+        const API = '/api';
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+        const params = new URLSearchParams(window.location.search);
+        const lessonId = params.get('id');
+        $scope.courseId = params.get('course');
+
+        $scope.loading = true;
+        $scope.lesson = {}; $scope.quiz = null; $scope.options = [];
+        $scope.selectedOption = null; $scope.quizSubmitted = false; $scope.quizResult = null;
+        $scope.isCompleted = false;
+
+        $http.get(API + '/lessons/single/' + lessonId).then(function(res) {
+          $scope.loading = false;
+          $scope.lesson = res.data.lesson;
+          if ($scope.lesson.video_url) {
+            $scope.lesson.video_url = $sce.trustAsResourceUrl($scope.lesson.video_url);
+          }
+        }).catch(function() { $scope.loading = false; });
+
+        $http.get(API + '/quizzes/' + lessonId).then(function(res) {
+          if (res.data.quiz) {
+            $scope.quiz = res.data.quiz;
+            $scope.options = [
+              { key: 'a', value: $scope.quiz.option_a },
+              { key: 'b', value: $scope.quiz.option_b },
+              { key: 'c', value: $scope.quiz.option_c },
+              { key: 'd', value: $scope.quiz.option_d }
+            ];
+          }
+        });
+
+        if (user.student_id) {
+          $http.get(API + '/progress/' + user.student_id).then(function(res) {
+            const completed = (res.data.progress || []).filter(p => p.completed).map(p => p.lesson_id);
+            $scope.isCompleted = completed.indexOf(parseInt(lessonId)) !== -1;
+          });
+        }
+
+        $scope.selectOption = function(key) {
+          if ($scope.quizSubmitted) return;
+          $scope.selectedOption = key;
+        };
+
+        $scope.getOptionClass = function(key) {
+          if (!$scope.quizSubmitted) return $scope.selectedOption === key ? 'selected' : '';
+          if (!$scope.quizResult) return '';
+          if (key.toUpperCase() === ($scope.quizResult.correct_option || '').toUpperCase()) return 'correct';
+          if (key === $scope.selectedOption && !$scope.quizResult.correct) return 'wrong';
+          return '';
+        };
+
+        $scope.submitQuiz = function() {
+          if (!$scope.selectedOption) return;
+          $http.post(API + '/quizzes/attempt', {
+            student_id: user.student_id || null,
+            quiz_id: $scope.quiz.quiz_id,
+            selected_option: $scope.selectedOption
+          }).then(function(res) {
+            $scope.quizResult = res.data;
+            $scope.quizSubmitted = true;
+          }).catch(function(err) {
+            console.error('Quiz submission failed:', err);
+            alert('Could not submit quiz. Error: ' + (err.data && err.data.error ? err.data.error : 'Unknown error'));
+          });
+        };
+
+        $scope.markComplete = function() {
+          if ($scope.isCompleted || !user.student_id) return;
+          $http.post(API + '/progress/complete', { student_id: user.student_id, lesson_id: parseInt(lessonId) })
+            .then(function(res) { if (res.data.success) $scope.isCompleted = true; });
+        };
+
+        $scope.goBack = function() { window.location.href = 'coursedetail.html?id=' + $scope.courseId; };
+        $scope.logout = function() { sessionStorage.clear(); window.location.href = 'login.html'; };
+      }]);
+  </script>
+</body>
+</html>

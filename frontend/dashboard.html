@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="elearningApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPath — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream:#F5F0E8; --dark:#1A1A2E; --accent:#C8963E; --accent-light:#E8B96A; --text:#2D2D2D; --muted:#7A7A7A; --white:#FFFFFF; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); }
+    nav { background: var(--dark); padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Playfair Display', serif; color: var(--white); font-size: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .nav-logo span { background: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 14px; }
+    .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; margin-left: 1.5rem; }
+    .nav-links a:hover { color: var(--white); }
+    .logout-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+    .dash-hero { background: var(--dark); padding: 2.5rem 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .dash-hero-left h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--white); }
+    .dash-hero-left h1 span { color: var(--accent-light); }
+    .dash-hero-left p { color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 6px; }
+    .dash-avatar { width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-family: 'Playfair Display', serif; font-size: 24px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 1.5rem 3rem; }
+    .stat-card { background: var(--white); border-radius: 10px; padding: 1.2rem 1.5rem; border: 1px solid #EDE8DE; }
+    .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-card .value { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--text); }
+    .stat-card .value.accent { color: var(--accent); }
+    .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .main { padding: 1rem 3rem 3rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 1.2rem; margin-top: 2rem; }
+
+    .enrolled-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem; }
+    .enrolled-card { background: var(--white); border-radius: 12px; padding: 1.2rem; border: 1px solid #EDE8DE; transition: box-shadow 0.2s; }
+    .enrolled-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .enrolled-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+    .enrolled-title { font-family: 'Playfair Display', serif; font-size: 1rem; flex: 1; }
+    .enrolled-category { font-size: 11px; background: rgba(200,150,62,0.1); color: var(--accent); padding: 3px 8px; border-radius: 10px; white-space: nowrap; margin-left: 8px; }
+    .enrolled-instructor { font-size: 12px; color: var(--muted); margin-bottom: 1rem; }
+
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+    .progress-bar { height: 6px; background: #EDE8DE; border-radius: 3px; overflow: hidden; margin-bottom: 1rem; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 3px; transition: width 0.6s ease; }
+
+    .continue-btn { width: 100%; padding: 9px; background: var(--dark); color: var(--white); border: none; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+    .continue-btn:hover { background: #2D2D4E; }
+    .continue-btn.completed { background: rgba(39,174,96,0.1); color: #27AE60; border: 1px solid rgba(39,174,96,0.3); cursor: default; }
+
+    .attempts-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 12px; overflow: hidden; border: 1px solid #EDE8DE; }
+    .attempts-table th { background: #F5F0E8; padding: 12px 16px; text-align: left; font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .attempts-table td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #F0EDE6; }
+    .attempts-table tr:last-child td { border-bottom: none; }
+    .score-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .score-badge.pass { background: rgba(39,174,96,0.1); color: #27AE60; }
+    .score-badge.fail { background: rgba(192,57,43,0.08); color: #C0392B; }
+
+    .empty { text-align: center; padding: 3rem; color: var(--muted); }
+    .loading { text-align: center; padding: 4rem; color: var(--muted); }
+    .spinner { width: 36px; height: 36px; border: 3px solid #DDD8CE; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body ng-controller="DashboardCtrl">
+  <nav>
+    <a class="nav-logo" href="courses.html"><span>🎓</span> EduPath</a>
+    <div class="nav-links">
+      <a href="courses.html">Browse Courses</a>
+      <a href="dashboard.html">My Dashboard</a>
+      <a href="students.html">Students List</a>
+    </div>
+    <button class="logout-btn" ng-click="logout()">Logout</button>
+  </nav>
+
+  <div class="dash-hero">
+    <div class="dash-hero-left">
+      <h1>Welcome back, <span>{{firstName}}</span> 👋</h1>
+      <p>Here's your learning progress at a glance</p>
+    </div>
+    <div class="dash-avatar">{{userInitials}}</div>
+  </div>
+
+  <div class="loading" ng-if="loading"><div class="spinner"></div><p>Loading your dashboard...</p></div>
+
+  <div ng-if="!loading">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">Enrolled Courses</div>
+        <div class="value accent">{{enrollments.length}}</div>
+        <div class="sub">Active courses</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Lessons Completed</div>
+        <div class="value accent">{{completedLessons()}}</div>
+        <div class="sub">Keep it up!</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Quiz Attempts</div>
+        <div class="value accent">{{attempts.length}}</div>
+        <div class="sub">Total attempts</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg Quiz Score</div>
+        <div class="value accent">{{avgScore()}}%</div>
+        <div class="sub">Overall performance</div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- Enrolled Courses -->
+      <div class="section-title">📚 My Courses</div>
+      <div ng-if="enrollments.length === 0" class="empty">
+        <p style="font-size:2rem">📖</p>
+        <p style="margin-top:8px">You haven't enrolled in any courses yet.</p>
+        <a href="courses.html" style="color:var(--accent);font-size:14px;margin-top:8px;display:block">Browse Courses →</a>
+      </div>
+      <div class="enrolled-grid">
+        <div class="enrolled-card" ng-repeat="e in enrollments">
+          <div class="enrolled-top">
+            <div class="enrolled-title">{{e.course_title}}</div>
+            <span class="enrolled-category">{{e.category_name}}</span>
+          </div>
+          <div class="enrolled-instructor">👤 {{e.instructor_name}}</div>
+          <div class="progress-label">
+            <span>Progress</span>
+            <span>{{getCourseProgress(e.course_id).percentage || 0}}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" ng-style="{ 'width': (getCourseProgress(e.course_id).percentage || 0) + '%' }"></div>
+          </div>
+          <button class="continue-btn" ng-class="{completed: getCourseProgress(e.course_id).percentage >= 100}"
+            ng-click="goToCourse(e.course_id)">
+            {{getCourseProgress(e.course_id).percentage >= 100 ? '✓ Completed' : 'Continue Learning →'}}
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Attempts -->
+      <div class="section-title">📝 Recent Quiz Attempts</div>
+      <div ng-if="attempts.length === 0" class="empty">No quiz attempts yet. Start a lesson to take a quiz!</div>
+      <table class="attempts-table" ng-if="attempts.length > 0">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Lesson</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="a in attempts | limitTo:10">
+            <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{a.question}}</td>
+            <td>{{a.lesson_title}}</td>
+            <td><span class="score-badge" ng-class="{pass: a.score >= 50, fail: a.score < 50}">{{a.score}}%</span></td>
+            <td>{{a.attempt_date | date:'mediumDate'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    angular.module('elearningApp', [])
+      .controller('DashboardCtrl', ['$scope', '$http', function($scope, $http) {
+        const API = '/api';
+        const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+        if (!user || !user.student_id) { window.location.href = 'login.html'; return; }
+
+        $scope.userName = user.name || 'Student';
+        $scope.firstName = ($scope.userName.split(' ')[0]);
+        $scope.userInitials = $scope.userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+        $scope.enrollments = []; $scope.progress = []; $scope.attempts = [];
+        $scope.courseProgress = {}; $scope.loading = true;
+
+        Promise.all([
+          $http.get(API + '/enrollments/' + user.student_id),
+          $http.get(API + '/progress/' + user.student_id),
+          $http.get(API + '/quizzes/attempts/' + user.student_id)
+        ]).then(function(results) {
+          $scope.loading = false;
+          $scope.enrollments = results[0].data.enrollments || [];
+          $scope.progress    = results[1].data.progress    || [];
+          $scope.attempts    = results[2].data.attempts    || [];
+
+          // Load per-course progress
+          $scope.enrollments.forEach(function(e) {
+            $http.get(API + '/progress/' + user.student_id + '/' + e.course_id).then(function(res) {
+              $scope.courseProgress[e.course_id] = res.data;
+            });
+          });
+          $scope.$apply();
+        }).catch(function() { $scope.loading = false; $scope.$apply(); });
+
+        $scope.completedLessons = function() { return $scope.progress.filter(p => p.completed).length; };
+        $scope.avgScore = function() {
+          if (!$scope.attempts.length) return 0;
+          return Math.round($scope.attempts.reduce((s,a) => s + a.score, 0) / $scope.attempts.length);
+        };
+        $scope.getCourseProgress = function(id) { return $scope.courseProgress[id] || {}; };
+        $scope.goToCourse = function(id) { window.location.href = 'coursedetail.html?id=' + id; };
+        $scope.logout = function() { sessionStorage.clear(); window.location.href = 'login.html'; };
+      }]);
+  </script>
+</body>
+</html>
