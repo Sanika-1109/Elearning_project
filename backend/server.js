@@ -22,7 +22,7 @@ app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/auth',          require('./routes/auth'));
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 app.get('/', (req, res) => {
   res.json({ message: 'E-Learning API is running!' });
@@ -31,14 +31,14 @@ app.get('/', (req, res) => {
 app.get('/api/test', async (req, res) => {
   try {
     const pool = await getPool();
-    const result = await pool.request().query('SELECT COUNT(*) AS student_count FROM Student');
-    res.json({ success: true, student_count: result.recordset[0].student_count });
+    const [rows] = await pool.query('SELECT COUNT(*) AS student_count FROM student');
+    res.json({ success: true, student_count: rows[0].student_count });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log('Server running at http://localhost:' + PORT);
-  getPool();
+  await getPool();
 });

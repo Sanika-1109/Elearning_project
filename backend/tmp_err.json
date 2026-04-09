@@ -1,1 +1,0 @@
-{"success":false,"error":"The INSERT statement conflicted with the CHECK constraint \"CK__quiz_atte__score__3A81B327\". The conflict occurred in database \"DBMS_Project\", table \"dbo.quiz_attempt\", column 'score'."}
