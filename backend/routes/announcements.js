@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
     const pool = await getPool();
 
     await pool.query(
-      'INSERT INTO announcement (course_id, instructor_id, title, content, posted_date) VALUES (?, ?, ?, ?, NOW())',
+      'INSERT INTO announcement (course_id, instructor_id, title, content, posted_date) VALUES ($1, $2, $3, $4, NOW())',
       [course_id, instructor_id, title, content]
     );
 

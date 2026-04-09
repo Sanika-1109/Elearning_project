@@ -18,15 +18,15 @@ router.get('/', async (req, res) => {
     let params = [];
 
     if (category) {
-      query += ` AND cat.name = ?`;
       params.push(category);
+      query += ` AND cat.name = $${params.length}`;
     }
     if (search) {
-      query += ` AND (c.title LIKE ? OR c.description LIKE ?)`;
       params.push(`%${search}%`, `%${search}%`);
+      query += ` AND (c.title LIKE $${params.length - 1} OR c.description LIKE $${params.length})`;
     }
 
-    const [rows] = await pool.query(query, params);
+    const { rows } = await pool.query(query, params);
     res.json({ success: true, courses: rows });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/meta/categories', async (req, res) => {
   try {
     const pool = await getPool();
-    const [rows] = await pool.query('SELECT * FROM category');
+    const { rows } = await pool.query('SELECT * FROM category');
     res.json({ success: true, categories: rows });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -50,29 +50,29 @@ router.get('/:id', async (req, res) => {
     const id = req.params.id;
     const pool = await getPool();
 
-    const [courseRows] = await pool.query(`
+    const { rows: courseRows } = await pool.query(`
       SELECT c.*, cat.name as category_name, i.name as instructor_name
       FROM course c
       JOIN category cat ON c.category_id = cat.category_id
       JOIN instructor i ON c.instructor_id = i.instructor_id
-      WHERE c.course_id = ?
+      WHERE c.course_id = $1
     `, [id]);
 
     if (courseRows.length === 0) return res.status(404).json({ message: 'Course not found' });
 
-    const [lessons] = await pool.query('SELECT * FROM lesson WHERE course_id = ? ORDER BY order_index', [id]);
-    const [reviews] = await pool.query(`
+    const { rows: lessons } = await pool.query('SELECT * FROM lesson WHERE course_id = $1 ORDER BY order_index', [id]);
+    const { rows: reviews } = await pool.query(`
       SELECT r.*, s.name as student_name
       FROM review r
       JOIN student s ON r.student_id = s.student_id
-      WHERE r.course_id = ?
+      WHERE r.course_id = $1
       ORDER BY r.review_date DESC
     `, [id]);
-    const [announcements] = await pool.query(`
+    const { rows: announcements } = await pool.query(`
       SELECT a.*, i.name as instructor_name
       FROM announcement a
       JOIN instructor i ON a.instructor_id = i.instructor_id
-      WHERE a.course_id = ?
+      WHERE a.course_id = $1
       ORDER BY a.posted_date DESC
     `, [id]);
 
@@ -95,7 +95,7 @@ router.post('/', async (req, res) => {
     const pool = await getPool();
 
     await pool.query(
-      'INSERT INTO course (title, description, instructor_id, category_id, created_date) VALUES (?, ?, ?, ?, NOW())',
+      'INSERT INTO course (title, description, instructor_id, category_id, created_date) VALUES ($1, $2, $3, $4, NOW())',
       [title, description, instructor_id, category_id]
     );
 

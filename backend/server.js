@@ -1,3 +1,4 @@
+// backend/server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// API routes
 app.use('/api/courses',       require('./routes/courses'));
 app.use('/api/lessons',       require('./routes/lessons'));
 app.use('/api/quizzes',       require('./routes/quizzes'));
@@ -25,20 +27,27 @@ app.use('/api/auth',          require('./routes/auth'));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'E-Learning API is running!' });
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'login.html'));
 });
 
+// Test database connection
 app.get('/api/test', async (req, res) => {
-  try {
-    const pool = await getPool();
-    const [rows] = await pool.query('SELECT COUNT(*) AS student_count FROM student');
-    res.json({ success: true, student_count: rows[0].student_count });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+    try {
+        const pool = await getPool();
+        const result = await pool.query('SELECT COUNT(*) AS student_count FROM student');
+        res.json({ success: true, student_count: result.rows[0].student_count });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 app.listen(PORT, async () => {
-  console.log('Server running at http://localhost:' + PORT);
-  await getPool();
+    console.log(`Server running at http://localhost:${PORT}`);
+    try {
+        const pool = await getPool();
+        await pool.query('SELECT 1');
+        console.log('✅ Database connection successful.');
+    } catch (err) {
+        console.error('❌ Database connection failed:', err.message);
+    }
 });

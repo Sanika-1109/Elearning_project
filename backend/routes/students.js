@@ -6,7 +6,7 @@ const { getPool } = require('../db');
 router.get('/', async (req, res) => {
   try {
     const pool = await getPool();
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT s.*, COUNT(e.enrollment_id) as enrollment_count
       FROM student s
       LEFT JOIN enrollment e ON s.student_id = e.student_id

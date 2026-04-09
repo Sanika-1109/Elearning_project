@@ -6,13 +6,13 @@ const { getPool } = require('../db');
 router.get('/:student_id', async (req, res) => {
   try {
     const pool = await getPool();
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT e.*, c.title as course_title, cat.name as category_name, i.name as instructor_name
       FROM enrollment e
       JOIN course c ON e.course_id = c.course_id
       JOIN category cat ON c.category_id = cat.category_id
       JOIN instructor i ON c.instructor_id = i.instructor_id
-      WHERE e.student_id = ?
+      WHERE e.student_id = $1
     `, [req.params.student_id]);
     res.json({ success: true, enrollments: rows });
   } catch (err) {
@@ -26,13 +26,13 @@ router.post('/', async (req, res) => {
     const { student_id, course_id } = req.body;
     const pool = await getPool();
 
-    const [existing] = await pool.query('SELECT * FROM enrollment WHERE student_id = ? AND course_id = ?', [student_id, course_id]);
+    const { rows: existing } = await pool.query('SELECT * FROM enrollment WHERE student_id = $1 AND course_id = $2', [student_id, course_id]);
     if (existing.length > 0) {
       return res.json({ success: false, message: 'Already enrolled' });
     }
 
     await pool.query(
-      'INSERT INTO enrollment (student_id, course_id, enrollment_date) VALUES (?, ?, NOW())',
+      'INSERT INTO enrollment (student_id, course_id, enrollment_date) VALUES ($1, $2, NOW())',
       [student_id, course_id]
     );
 
