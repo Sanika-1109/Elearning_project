@@ -9,7 +9,9 @@ router.get('/', async (req, res) => {
     const pool = await getPool();
 
     let query = `
-      SELECT c.*, cat.name as category_name, i.name as instructor_name
+      SELECT c.*, cat.name as category_name, i.name as instructor_name,
+             (SELECT COUNT(*) FROM enrollment e WHERE e.course_id = c.course_id) as total_enrollments,
+             (SELECT AVG(rating) FROM review r WHERE r.course_id = c.course_id) as avg_rating
       FROM course c
       JOIN category cat ON c.category_id = cat.category_id
       JOIN instructor i ON c.instructor_id = i.instructor_id
