@@ -1,0 +1,8 @@
+{
+  "name": "elearning-platform",
+  "version": "1.0.0",
+  "description": "Root package for E-Learning Platform",
+  "scripts": {
+    "start": "node backend/server.js"
+  }
+}
